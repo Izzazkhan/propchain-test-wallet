@@ -6,10 +6,13 @@ type WalletContextValue = {
 	isConnecting: boolean
 	error: string | null
 	isModalOpen: boolean
+	balance: string | null
+	isLoadingBalance: boolean
 	openModal: () => void
 	closeModal: () => void
 	connectMetaMask: () => Promise<void>
 	disconnect: () => void
+	fetchBalance: () => Promise<void>
 }
 
 const WalletContext = createContext<WalletContextValue | undefined>(undefined)
@@ -24,6 +27,8 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
 	const [isConnecting, setIsConnecting] = useState(false)
 	const [error, setError] = useState<string | null>(null)
 	const [isModalOpen, setIsModalOpen] = useState(false)
+	const [balance, setBalance] = useState<string | null>(null)
+	const [isLoadingBalance, setIsLoadingBalance] = useState(false)
 
     function openModal() { setIsModalOpen(true) }
     function closeModal() { setIsModalOpen(false) }
@@ -50,9 +55,51 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
 		}
     }
 
+    async function fetchBalance() {
+        if (!address) {
+            setBalance(null)
+            return
+        }
+        
+        const ethereum = getEthereum()
+        if (!ethereum) {
+            setError('Ethereum provider not available')
+            return
+        }
+
+        try {
+            setIsLoadingBalance(true)
+            const balanceHex = await ethereum.request({
+                method: 'eth_getBalance',
+                params: [address, 'latest']
+            }) as string
+            
+            // Convert from wei to ETH
+            const balanceWei = BigInt(balanceHex)
+            const balanceEth = Number(balanceWei) / Math.pow(10, 18)
+            const formattedBalance = balanceEth.toFixed(4)
+            
+            console.log('Balance fetched:', {
+                address,
+                balanceHex,
+                balanceWei: balanceWei.toString(),
+                balanceEth,
+                formattedBalance
+            })
+            
+            setBalance(formattedBalance)
+        } catch (e: unknown) {
+            const err = e as { message?: string }
+            setError(err?.message ?? 'Failed to fetch balance')
+        } finally {
+            setIsLoadingBalance(false)
+        }
+    }
+
     function disconnect() {
         setAddress(null)
         setError(null)
+        setBalance(null)
     }
 
 	useEffect(() => {
@@ -89,15 +136,27 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
         return () => { active = false }
     }, [])
 
+    // Fetch balance when address changes
+    useEffect(() => {
+        if (address) {
+            fetchBalance()
+        } else {
+            setBalance(null)
+        }
+    }, [address])
+
     const value: WalletContextValue = {
         address,
         isConnecting,
         error,
         isModalOpen,
+        balance,
+        isLoadingBalance,
         openModal,
         closeModal,
         connectMetaMask,
-        disconnect
+        disconnect,
+        fetchBalance
     }
 
 	return <WalletContext.Provider value={value}>{children}</WalletContext.Provider>

@@ -3,7 +3,7 @@ import { WalletProvider, useWallet } from './wallet/WalletContext'
 import { WalletModal } from './wallet/WalletModal'
 
 function Header() {
-	const { address, openModal } = useWallet()
+	const { address, openModal, balance, isLoadingBalance } = useWallet()
 	const label = address ? `${address.slice(0, 6)}...${address.slice(-4)}` : 'Connect Wallet'
 	return (
 		<nav className="navbar">
@@ -18,7 +18,30 @@ function Header() {
 					<a href="#favorites">Favorites</a>
 					<a href="#dashboard">Dashboard</a>
 				</div>
-				<button onClick={openModal} className="wallet-btn">{label}</button>
+				<div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+					{address && balance && (
+						<div style={{ 
+							display: 'flex', 
+							alignItems: 'center', 
+							gap: 6, 
+							padding: '6px 12px', 
+							background: '#f8fafc', 
+							borderRadius: 8, 
+							border: '1px solid #e2e8f0',
+							fontSize: 14
+						}}>
+							<span style={{ color: '#64748b' }}>Balance:</span>
+							<span style={{ 
+								fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+								fontWeight: 600,
+								color: '#1e293b'
+							}}>
+								{isLoadingBalance ? '...' : `${balance} ETH`}
+							</span>
+						</div>
+					)}
+					<button onClick={openModal} className="wallet-btn">{label}</button>
+				</div>
 			</div>
 		</nav>
 	)

@@ -10,7 +10,7 @@ function ExternalLink({ href, children }: { href: string; children: React.ReactN
 }
 
 export function WalletModal() {
-	const { isModalOpen, closeModal, connectMetaMask, error, isConnecting, address, disconnect } = useWallet()
+	const { isModalOpen, closeModal, connectMetaMask, error, isConnecting, address, disconnect, balance, isLoadingBalance, fetchBalance } = useWallet()
 	if (!isModalOpen) return null
 
 	const hasMetaMask = typeof (window as any).ethereum !== 'undefined'
@@ -23,7 +23,36 @@ export function WalletModal() {
 					{address ? (
 					<div>
 						<div style={{ marginBottom: 6 }}>Connected address</div>
-						<div style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace' }}>{address}</div>
+						<div style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace', marginBottom: 12 }}>{address}</div>
+						
+						<div style={{ marginBottom: 6 }}>Balance</div>
+						<div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+							{isLoadingBalance ? (
+								<span style={{ color: '#666' }}>Loading...</span>
+							) : balance ? (
+								<span style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace', fontWeight: 600 }}>
+									{balance} ETH
+								</span>
+							) : (
+								<span style={{ color: '#666' }}>Unable to load balance</span>
+							)}
+							<button 
+								onClick={fetchBalance} 
+								disabled={isLoadingBalance}
+								style={{ 
+									padding: '4px 8px', 
+									background: '#f3f4f6', 
+									color: '#374151', 
+									borderRadius: 4, 
+									border: '1px solid #d1d5db', 
+									cursor: 'pointer',
+									fontSize: 12
+								}}
+							>
+								Refresh
+							</button>
+						</div>
+						
 						<div style={{ marginTop: 12 }}>
 							<button onClick={disconnect} style={{ padding: '8px 10px', background: '#ef4444', color: '#fff', borderRadius: 6, border: 0, cursor: 'pointer' }}>Disconnect</button>
 						</div>

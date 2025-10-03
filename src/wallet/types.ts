@@ -9,5 +9,7 @@ export type WalletState = {
 	isConnecting: boolean
 	error: string | null
 	isModalOpen: boolean
+	balance: string | null
+	isLoadingBalance: boolean
 }
 
